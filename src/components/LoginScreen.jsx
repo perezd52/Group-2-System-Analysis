@@ -1,5 +1,9 @@
 import { useState } from "react";
+import { supabase } from "../utils/supabase";
 import { BackIcon, CheckIcon, LockIcon, UserIcon } from "./Icons";
+
+const workerIdToEmail = (workerId) =>
+  `${workerId.trim().toLowerCase()}@umanskytoyota.com`;
 
 // ── Login Screen ─────────────────────────────────────────────────────────────
 export default function LoginScreen({ onLogin }) {
@@ -17,15 +21,36 @@ export default function LoginScreen({ onLogin }) {
   const [error, setError] = useState("");
   const [signupError, setSignupError] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!workerId.trim() || !password.trim()) {
       setError("Please enter your Worker ID and password.");
       return;
     }
-    onLogin({ name: workerId, role });
+
+    const email = workerIdToEmail(workerId);
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message || "Sign in failed.");
+      return;
+    }
+
+    const roleFromMeta = data?.user?.user_metadata?.role || "employee";
+    const nameFromMeta = data?.user?.user_metadata?.name || workerId;
+
+    onLogin({
+      name: nameFromMeta,
+      workerId,
+      role: roleFromMeta,
+      email,
+    });
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!form.name || !form.workerId || !form.password || !form.confirm) {
       setSignupError("Please fill in all fields.");
       return;
@@ -38,6 +63,27 @@ export default function LoginScreen({ onLogin }) {
       setSignupError("Password must be at least 6 characters.");
       return;
     }
+
+    const email = workerIdToEmail(form.workerId);
+
+    const { error: signupErr } = await supabase.auth.signUp({
+      email,
+      password: form.password,
+      options: {
+        data: {
+          name: form.name,
+          workerId: form.workerId,
+          role: form.role,
+        },
+      },
+    });
+
+    if (signupErr) {
+      setSignupError(signupErr.message || "Signup failed.");
+      return;
+    }
+
+    setSignupError("");
     setScreen("success");
   };
 
