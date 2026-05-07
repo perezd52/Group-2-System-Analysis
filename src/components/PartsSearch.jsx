@@ -3,17 +3,50 @@ import { CATEGORIES } from "../data/mockParts";
 import { CartIcon, SearchIcon } from "./Icons";
 
 // ── Parts Search ──────────────────────────────────────────────────────────────
-export default function PartsSearch({ parts, onSelectPart, onAddToCart }) {
+export default function PartsSearch({
+  parts,
+  user,
+  onSelectPart,
+  onAddToCart,
+  onCreatePart,
+  onDeletePart,
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
 
   const [qtyMap, setQtyMap] = useState({});
+  const [newPart, setNewPart] = useState({
+    id: "",
+    name: "",
+    category: "",
+    price: "",
+    stock: "",
+    location: "",
+    compatibleModels: "",
+    description: "",
+  });
 
   const getQty = (id) => qtyMap[id] || 1;
 
   const handleAddToCart = (p) => {
     onAddToCart(p, getQty(p.id));
     setQtyMap((prev) => ({ ...prev, [p.id]: 1 }));
+  };
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    if (!newPart.id || !newPart.name) return;
+    onCreatePart(newPart);
+    setNewPart({
+      id: "",
+      name: "",
+      category: "",
+      price: "",
+      stock: "",
+      location: "",
+      compatibleModels: "",
+      description: "",
+    });
   };
 
   const filtered = parts.filter((p) => {
@@ -54,6 +87,35 @@ export default function PartsSearch({ parts, onSelectPart, onAddToCart }) {
           </button>
         ))}
       </div>
+
+      {user?.role === "manager" && (
+        <form
+          className="detailCard"
+          style={{ marginBottom: 16 }}
+          onSubmit={handleCreateSubmit}
+        >
+          <h3 style={{ marginBottom: 12 }}>Create Part</h3>
+          <div className="detailGrid">
+            <input className="fieldInput" placeholder="Part ID" value={newPart.id} onChange={(e) => setNewPart((p) => ({ ...p, id: e.target.value }))} />
+            <input className="fieldInput" placeholder="Name" value={newPart.name} onChange={(e) => setNewPart((p) => ({ ...p, name: e.target.value }))} />
+            <input className="fieldInput" placeholder="Category" value={newPart.category} onChange={(e) => setNewPart((p) => ({ ...p, category: e.target.value }))} />
+            <input className="fieldInput" placeholder="Price" type="number" step="0.01" value={newPart.price} onChange={(e) => setNewPart((p) => ({ ...p, price: e.target.value }))} />
+            <input className="fieldInput" placeholder="Stock" type="number" min="0" value={newPart.stock} onChange={(e) => setNewPart((p) => ({ ...p, stock: e.target.value }))} />
+            <input className="fieldInput" placeholder="Location" value={newPart.location} onChange={(e) => setNewPart((p) => ({ ...p, location: e.target.value }))} />
+            <input className="fieldInput" placeholder="Compatible Models" value={newPart.compatibleModels} onChange={(e) => setNewPart((p) => ({ ...p, compatibleModels: e.target.value }))} />
+          </div>
+          <textarea
+            className="fieldTextarea"
+            style={{ marginTop: 10 }}
+            placeholder="Description"
+            value={newPart.description}
+            onChange={(e) => setNewPart((p) => ({ ...p, description: e.target.value }))}
+          />
+          <div className="editActions">
+            <button className="saveBtn" type="submit">Create Part</button>
+          </div>
+        </form>
+      )}
 
       <div className="resultsInfo">
         {filtered.length} part{filtered.length !== 1 ? "s" : ""} found
@@ -135,6 +197,18 @@ export default function PartsSearch({ parts, onSelectPart, onAddToCart }) {
                   >
                     <CartIcon />
                   </button>
+                  {user?.role === "manager" && (
+                    <button
+                      className="removeBtn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeletePart(p.id);
+                      }}
+                      title="Delete part"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </span>
               </div>
             );
