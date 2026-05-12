@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CATEGORIES } from "../data/mockParts";
 import { CartIcon, SearchIcon } from "./Icons";
+
+// Vehicle filter constants
+const YEARS = ["All", 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+const MODELS = ["All", "Camry", "Corolla", "RAV4", "Tacoma", "Prius", "Highlander", "4Runner", "Tundra", "Yaris"];
 
 // ── Parts Search ──────────────────────────────────────────────────────────────
 export default function PartsSearch({
@@ -11,18 +15,21 @@ export default function PartsSearch({
   onCreatePart,
   onDeletePart,
 }) {
-  const [query, setQuery] = useState("");
+const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [year, setYear] = useState("All");
+  const [model, setModel] = useState("All");
 
   const [qtyMap, setQtyMap] = useState({});
-  const [newPart, setNewPart] = useState({
+const [newPart, setNewPart] = useState({
     id: "",
     name: "",
     category: "",
     price: "",
     stock: "",
     location: "",
-    compatibleModels: "",
+    vehicleYear: "",
+    vehicleModel: "",
     description: "",
   });
 
@@ -33,32 +40,37 @@ export default function PartsSearch({
     setQtyMap((prev) => ({ ...prev, [p.id]: 1 }));
   };
 
-  const handleCreateSubmit = (e) => {
+const handleCreateSubmit = (e) => {
     e.preventDefault();
     if (!newPart.id || !newPart.name) return;
     onCreatePart(newPart);
-    setNewPart({
+setNewPart({
       id: "",
       name: "",
       category: "",
       price: "",
       stock: "",
       location: "",
-      compatibleModels: "",
+      vehicleYear: "",
+      vehicleModel: "",
       description: "",
     });
   };
 
-  const filtered = parts.filter((p) => {
-    const q = query.toLowerCase();
-    const matchQuery =
-      !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.id.toLowerCase().includes(q) ||
-      p.compatibleModels.toLowerCase().includes(q);
-    const matchCat = category === "All" || p.category === category;
-    return matchQuery && matchCat;
-  });
+const filtered = useMemo(() => {
+    return parts.filter((p) => {
+      const q = query.toLowerCase();
+      const matchQuery =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        (p.vehicleModel && p.vehicleModel.toLowerCase().includes(q));
+      const matchCat = category === "All" || p.category === category;
+      const matchYear = year === "All" || (p.vehicleYear && p.vehicleYear === parseInt(year, 10));
+      const matchModel = model === "All" || p.vehicleModel === model;
+      return matchQuery && matchCat && matchYear && matchModel;
+    });
+  }, [parts, query, category, year, model]);
 
   return (
     <div className="searchWrap">
@@ -76,7 +88,7 @@ export default function PartsSearch({
         </div>
       </div>
 
-      <div className="catRow">
+<div className="catRow">
         {CATEGORIES.map((c) => (
           <button
             key={c}
@@ -88,6 +100,20 @@ export default function PartsSearch({
         ))}
       </div>
 
+{/* Vehicle Filters */}
+      <div className="catRow" style={{ marginTop: 8 }}>
+        <select className="fieldInput" style={{ width: "auto" }} value={year} onChange={(e) => setYear(e.target.value)}>
+          {YEARS.map((y) => (
+            <option key={y} value={y}>{y === "All" ? "Year" : y}</option>
+          ))}
+        </select>
+        <select className="fieldInput" style={{ width: "auto" }} value={model} onChange={(e) => setModel(e.target.value)}>
+          {MODELS.map((m) => (
+            <option key={m} value={m}>{m === "All" ? "Model" : m}</option>
+          ))}
+        </select>
+      </div>
+
       {user?.role === "manager" && (
         <form
           className="detailCard"
@@ -95,14 +121,17 @@ export default function PartsSearch({
           onSubmit={handleCreateSubmit}
         >
           <h3 style={{ marginBottom: 12 }}>Create Part</h3>
-          <div className="detailGrid">
+<div className="detailGrid">
             <input className="fieldInput" placeholder="Part ID" value={newPart.id} onChange={(e) => setNewPart((p) => ({ ...p, id: e.target.value }))} />
             <input className="fieldInput" placeholder="Name" value={newPart.name} onChange={(e) => setNewPart((p) => ({ ...p, name: e.target.value }))} />
             <input className="fieldInput" placeholder="Category" value={newPart.category} onChange={(e) => setNewPart((p) => ({ ...p, category: e.target.value }))} />
             <input className="fieldInput" placeholder="Price" type="number" step="0.01" value={newPart.price} onChange={(e) => setNewPart((p) => ({ ...p, price: e.target.value }))} />
             <input className="fieldInput" placeholder="Stock" type="number" min="0" value={newPart.stock} onChange={(e) => setNewPart((p) => ({ ...p, stock: e.target.value }))} />
             <input className="fieldInput" placeholder="Location" value={newPart.location} onChange={(e) => setNewPart((p) => ({ ...p, location: e.target.value }))} />
-            <input className="fieldInput" placeholder="Compatible Models" value={newPart.compatibleModels} onChange={(e) => setNewPart((p) => ({ ...p, compatibleModels: e.target.value }))} />
+          </div>
+<div className="detailGrid" style={{ marginTop: 8 }}>
+            <input className="fieldInput" placeholder="Vehicle Year (e.g. 2024)" type="number" value={newPart.vehicleYear} onChange={(e) => setNewPart((p) => ({ ...p, vehicleYear: e.target.value }))} />
+            <input className="fieldInput" placeholder="Vehicle Model (e.g. Camry)" value={newPart.vehicleModel} onChange={(e) => setNewPart((p) => ({ ...p, vehicleModel: e.target.value }))} />
           </div>
           <textarea
             className="fieldTextarea"

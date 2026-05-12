@@ -16,7 +16,8 @@ Frontend inventory/search/cart system using **React + Vite** with **Supabase Aut
 - Role metadata stored on signup (`employee` / `manager`)
 - Parts loaded from Supabase table `public.parts`
 - Search + category filtering
-- Part detail view
+- **Vehicle filtering by Year + Model** (Toyota-specific)
+- Part detail view with edit capability for managers
 - Manager-side part updates persisted to Supabase
 - Quote cart (add/update/remove/clear/print)
 
@@ -24,9 +25,11 @@ Frontend inventory/search/cart system using **React + Vite** with **Supabase Aut
 
 - `src/` → frontend app
 - `src/utils/supabase.js` → Supabase client initialization
-- `backend/full-schema.sql` → full schema + seed data
+- `backend/full-schema.sql` → base schema + seed data
+- `backend/vehicle-migration.sql` → adds vehicle_year, vehicle_make, vehicle_model columns
 - `backend/rls-fix.sql` → RLS + permission fix for `parts` table
-- `backend/README.md` → backend/Supabase DB setup instructions
+- `backend/update_parts_vehicle_schema.sql` → alternative vehicle schema + sample data
+- `backend/README.md` → detailed backend/Supabase DB setup instructions
 
 ## Prerequisites
 
@@ -40,9 +43,10 @@ Frontend inventory/search/cart system using **React + Vite** with **Supabase Aut
 Create a Supabase project in the dashboard.
 
 ### B. Run schema
-Open **Supabase SQL Editor** and run:
-1. `backend/full-schema.sql`
-2. `backend/rls-fix.sql`
+Open **Supabase SQL Editor** and run in this order:
+1. `backend/full-schema.sql` (creates tables and seed data)
+2. `backend/vehicle-migration.sql` (adds vehicle filtering columns and data)
+3. `backend/rls-fix.sql` (RLS policies and permissions)
 
 ### C. Auth setting (important for local/internal testing)
 Go to **Authentication → Providers → Email**:
@@ -113,14 +117,22 @@ Some VSCode SQL extensions parse files as SQL Server/T-SQL and show syntax error
 
 ## Quick Start (Copy/Paste)
 
-1. Run SQL files in Supabase:
-   - `backend/full-schema.sql`
-   - `backend/rls-fix.sql`
+1. Run SQL files in Supabase (in this order):
+   - `backend/full-schema.sql` (creates tables and seed data)
+   - `backend/vehicle-migration.sql` (adds vehicle filtering columns)
+   - `backend/rls-fix.sql` (RLS policies and permissions)
 2. Create root `.env` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
 3. `npm install`
 4. `npm run dev`
 5. Sign up with Worker ID (e.g. `EMP-9001`) and password
-6. Sign in and verify parts load
+6. Sign in and verify parts load with vehicle filtering
+
+## Vehicle Filtering Notes
+
+- The app supports filtering parts by **Year** (2025-2018) and **Model** (Camry, Corolla, RAV4, Tacoma, etc.)
+- Make is hardcoded to "Toyota" (this is a Toyota-only parts system)
+- Vehicle fields in DB: `vehicle_year`, `vehicle_make`, `vehicle_model`
+- Run `backend/vehicle-migration.sql` to populate vehicle data from existing `compatible_models`
 
 ## Status
 

@@ -111,7 +111,7 @@ export default function PartDetail({ part, user, onBack, onSave, onAddToCart }) 
               )
             }
           />
-          <DetailField
+<DetailField
             label="Bin Location"
             value={
               editing ? (
@@ -128,18 +128,37 @@ export default function PartDetail({ part, user, onBack, onSave, onAddToCart }) 
             }
           />
           <DetailField
-            label="Compatible Models"
+            label="Vehicle Year"
             value={
               editing ? (
                 <input
                   className="fieldInput"
-                  value={form.compatibleModels}
+                  type="number"
+                  value={form.vehicleYear}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, compatibleModels: e.target.value }))
+                    setForm((f) => ({ ...f, vehicleYear: e.target.value }))
                   }
                 />
               ) : (
-                form.compatibleModels
+                form.vehicleYear
+              )
+            }
+          />
+        </div>
+        <div className="detailGrid">
+          <DetailField
+            label="Vehicle Model"
+            value={
+              editing ? (
+                <input
+                  className="fieldInput"
+                  value={form.vehicleModel}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, vehicleModel: e.target.value }))
+                  }
+                />
+              ) : (
+                form.vehicleModel
               )
             }
           />
