@@ -19,24 +19,26 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  const normalizePart = (p) => ({
+const normalizePart = (p) => ({
     id: p.id,
     name: p.name,
     category: p.category || "Uncategorized",
     price: parseFloat(p.price),
     stock: Number.isFinite(Number(p.stock)) ? parseInt(p.stock, 10) : 0,
     location: p.location || "",
-    compatibleModels: p.compatible_models || "",
     description: p.description || "",
+    vehicleYear: p.vehicle_year || null,
+    vehicleMake: p.vehicle_make || "Toyota",
+    vehicleModel: p.vehicle_model || "",
   });
 
   const fetchParts = useCallback(async () => {
     setLoading(true);
     setLoadError("");
 
-    const { data, error } = await supabase
+const { data, error } = await supabase
       .from("parts")
-      .select("id, name, category, price, stock, location, compatible_models, description")
+      .select("id, name, category, price, stock, location, compatible_models, description, vehicle_year, vehicle_make, vehicle_model")
       .order("id", { ascending: true });
 
     if (error) {
@@ -101,22 +103,24 @@ export default function App() {
     return () => authListener.subscription.unsubscribe();
   }, [fetchParts]);
 
-  const handleSave = async (updated) => {
+const handleSave = async (updated) => {
     const payload = {
       name: updated.name,
       category: updated.category,
       price: parseFloat(updated.price),
       stock: parseInt(updated.stock, 10),
       location: updated.location,
-      compatible_models: updated.compatibleModels,
       description: updated.description,
+      vehicle_year: updated.vehicleYear ? parseInt(updated.vehicleYear, 10) : null,
+      vehicle_make: updated.vehicleMake || "Toyota",
+      vehicle_model: updated.vehicleModel || "",
     };
 
     const { data, error } = await supabase
       .from("parts")
       .update(payload)
       .eq("id", updated.id)
-      .select("id, name, category, price, stock, location, compatible_models, description")
+      .select("id, name, category, price, stock, location, compatible_models, description, vehicle_year, vehicle_make, vehicle_model")
       .single();
 
     if (error) {
@@ -130,7 +134,7 @@ export default function App() {
     setSelected(normalized);
   };
 
-  const handleCreatePart = async (newPart) => {
+const handleCreatePart = async (newPart) => {
     const payload = {
       id: newPart.id,
       name: newPart.name,
@@ -138,14 +142,16 @@ export default function App() {
       price: parseFloat(newPart.price),
       stock: parseInt(newPart.stock, 10),
       location: newPart.location,
-      compatible_models: newPart.compatibleModels,
       description: newPart.description,
+      vehicle_year: newPart.vehicleYear ? parseInt(newPart.vehicleYear, 10) : null,
+      vehicle_make: "Toyota",
+      vehicle_model: newPart.vehicleModel || "",
     };
 
     const { data, error } = await supabase
       .from("parts")
       .insert(payload)
-      .select("id, name, category, price, stock, location, compatible_models, description")
+      .select("id, name, category, price, stock, location, compatible_models, description, vehicle_year, vehicle_make, vehicle_model")
       .single();
 
     if (error) {

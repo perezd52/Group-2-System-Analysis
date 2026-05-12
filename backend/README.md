@@ -11,12 +11,16 @@ The frontend connects via `src/utils/supabase.js`.
 
 - `full-schema.sql`  
   Creates core database objects (tables/policies/triggers if included) and seed data.
+- `vehicle-migration.sql`  
+  Adds vehicle filtering columns (vehicle_year, vehicle_make, vehicle_model) and sample data.
 - `rls-fix.sql`  
   Applies additional grants/RLS policy fixes for authenticated CRUD access.
 - `server.js`  
   Optional Node/Express API scaffold.
 - `package.json`  
   Backend package/dependency manifest.
+- `add_vehicle_filters.sql` / `update_parts_vehicle_schema.sql`  
+  Alternative vehicle migration scripts (for reference).
 
 ---
 
@@ -96,12 +100,16 @@ PORT=5000
 
 Run scripts in **Supabase SQL Editor** in this exact order:
 
-1. `backend/full-schema.sql`
-2. `backend/rls-fix.sql`
+1. `backend/full-schema.sql` (creates tables and base seed data)
+2. `backend/vehicle-migration.sql` (adds vehicle filtering columns and sample data)
+3. `backend/rls-fix.sql` (RLS policies and permissions)
 
 Why order matters:
 - `full-schema.sql` ensures base schema/tables exist.
-- `rls-fix.sql` expects those objects and applies grant/policy corrections.
+- `vehicle-migration.sql` adds vehicle filtering columns (vehicle_year, vehicle_make, vehicle_model)
+- `rls-fix.sql` applies grant/policy corrections.
+
+**Note:** This is a Toyota-only parts system. Make is hardcoded to "Toyota" in the frontend.
 
 ---
 
@@ -220,8 +228,10 @@ Fix:
 
 - [ ] Supabase URL/anon key configured
 - [ ] `full-schema.sql` executed
+- [ ] `vehicle-migration.sql` executed
 - [ ] `rls-fix.sql` executed
 - [ ] User can sign in
-- [ ] Employee can read/search/view
+- [ ] Employee can read/search/view parts with vehicle filtering
 - [ ] Manager can create/edit/delete part
+- [ ] Vehicle filtering (Year + Model) works in UI
 - [ ] No permission errors in console/network
